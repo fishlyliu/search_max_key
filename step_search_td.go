@@ -3,9 +3,10 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/pkg/profile"
-	"test/work/search"
 	"time"
+
+	"github.com/pkg/profile"
+	"github.com/search_max_key/search"
 )
 
 func MulSearch() {

@@ -42,38 +42,38 @@ func (p *SearchFactory) SearchMax(key []byte, index int) {
 		multi = multi * 256
 	}
 	posDic := make([]int, multi)
+	/***** step1 compose posDic by comparing with [0-multi) *****/
 	var wg sync.WaitGroup
 	for i := 0; i < multi; i++ {
-		tk := make([]byte, MAX_KEY_LEN)
-		deepCopy(key, tk)
-		dividend := i
-		divisor := multi / 256
-		id := index
-		for j := 0; j < p.Step; j++ {
-			if j == p.Step-1 {
-				tk[id] = uint8(dividend)
-			} else {
-				tk[id] = uint8(dividend / divisor)
-				dividend = dividend % divisor
-				divisor = divisor / 256
-				id++
-			}
-		}
 		wg.Add(1)
-		go func(k []byte, i int) {
-			defer wg.Done()
-			rt := search(k)
-			if len(rt) == 0 {
-				posDic[i] = 1
-			} else {
-				posDic[i] = 0
+		go func(i int) {
+			tk := make([]byte, MAX_KEY_LEN)
+			copy(tk, key)
+			//deepCopy(key, tk)
+			dividend := i
+			divisor := multi / 256
+			id := index
+			for j := 0; j < p.Step; j++ {
+				if j == p.Step-1 {
+					tk[id] = uint8(dividend)
+				} else {
+					tk[id] = uint8(dividend / divisor)
+					dividend = dividend % divisor
+					divisor = divisor / 256
+					id++
+				}
 			}
-		}(tk, int(i))
+			defer wg.Done()
+			compareOne(posDic, tk, i)
+		}(int(i))
 	}
 	wg.Wait()
+
+	/***** step2 find 0 near 1 *****/
 	var i int
-	for i = 1; i < multi; i++ {
-		if posDic[i] > 0 {
+	for i = 1; i <= multi; i++ {
+		// find out all always 0 || find 0 near 1
+		if i == multi || posDic[i] > 0 {
 			t := i - 1
 			dividend := t
 			divisor := multi / 256
@@ -91,20 +91,6 @@ func (p *SearchFactory) SearchMax(key []byte, index int) {
 			return
 		}
 	}
-	// if maxKey always bigger than current key, it will be 255.255.255.255... now
-	dividend := i - 1
-	divisor := multi / 256
-	id := index
-	for j := 0; j < p.Step; j++ {
-		if j == p.Step-1 {
-			key[id] = uint8(dividend)
-		} else {
-			key[id] = uint8(dividend / divisor)
-			dividend = dividend % divisor
-			divisor = divisor / 256
-			id++
-		}
-	}
 }
 
 func deepCopy(a []byte, b []byte) {
@@ -113,6 +99,16 @@ func deepCopy(a []byte, b []byte) {
 	}
 	for i := 0; i < len(a); i++ {
 		b[i] = a[i]
+	}
+}
+
+// compare k with maxKey, and record in posDic
+func compareOne(posDic []int, k []byte, i int) {
+	rt := search(k)
+	if len(rt) == 0 {
+		posDic[i] = 1
+	} else {
+		posDic[i] = 0
 	}
 }
 

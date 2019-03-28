@@ -3,8 +3,9 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"test/work/search"
 	"testing"
+
+	"github.com/search_max_key/search"
 )
 
 func TestSingleStepSearch(t *testing.T) {
