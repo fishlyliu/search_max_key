@@ -5,14 +5,17 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/pkg/profile"
 	"github.com/search_max_key/search"
 )
 
 func TestSingleStepSearch(t *testing.T) {
+	defer profile.Start().Stop()
 	StepSearch(1)
 }
 
 func TestDoubleStepSearch(t *testing.T) {
+	defer profile.Start().Stop()
 	StepSearch(2)
 }
 

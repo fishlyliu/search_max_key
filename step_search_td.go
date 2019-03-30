@@ -13,12 +13,13 @@ func MulSearch() {
 	fmt.Printf("maxkey is %+v\n", search.GetMaxKey())
 	var MAX_KEY_LEN = search.MAX_KEY_LEN
 	var key = make([]byte, MAX_KEY_LEN)
-	step := 2
+	step := 1
 	left := MAX_KEY_LEN % 2
-	doubleSearch, err := search.NewSearchFactory(step)
+	stepSearch, err := search.NewSearchFactory(step)
 	if err != nil {
 		return
 	}
+	// every step num of byte compare together
 	for i := 0; i < MAX_KEY_LEN; i = i + step {
 		if left != 0 && i == MAX_KEY_LEN-left {
 			leftSearch, err := search.NewSearchFactory(left)
@@ -28,11 +29,10 @@ func MulSearch() {
 			leftSearch.SearchMax(key, i)
 			break
 		}
-		doubleSearch.SearchMax(key, i)
+		stepSearch.SearchMax(key, i)
 	}
 	fmt.Printf("result is %+v\n", key)
 	fmt.Printf("maxKey and result compare %+v\n", bytes.Compare(search.GetMaxKey(), key))
-
 }
 
 func main() {

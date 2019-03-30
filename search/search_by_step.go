@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	MAX_KEY_LEN = 255 //this is len of maxKey
+	MAX_KEY_LEN = 256 //this is len of maxKey
 )
 
 var maxKey = make([]byte, MAX_KEY_LEN)
@@ -36,35 +36,44 @@ func NewSearchFactory(step int) (*SearchFactory, error) {
 	return sf, nil
 }
 
+/**
+ * key: key holds the result after SearchMax, every time call SearchMax, key will be filled step num byte
+ * index: start position to be filled
+ */
+
 func (p *SearchFactory) SearchMax(key []byte, index int) {
+	// multi show how many possible value, decided by p.Step
 	multi := 1
 	for i := 0; i < p.Step; i++ {
 		multi = multi * 256
 	}
+	// posDic is used to record every try bytes result of compareOne
 	posDic := make([]int, multi)
 	/***** step1 compose posDic by comparing with [0-multi) *****/
 	var wg sync.WaitGroup
+	// i is the possible value to try
 	for i := 0; i < multi; i++ {
 		wg.Add(1)
 		go func(i int) {
-			tk := make([]byte, MAX_KEY_LEN)
-			copy(tk, key)
-			//deepCopy(key, tk)
+			// compareKey is composed of key and trying bytes
+			compareKey := make([]byte, MAX_KEY_LEN)
+			copy(compareKey, key)
+			// i divided into compareKey by step
 			dividend := i
 			divisor := multi / 256
 			id := index
 			for j := 0; j < p.Step; j++ {
 				if j == p.Step-1 {
-					tk[id] = uint8(dividend)
+					compareKey[id] = uint8(dividend)
 				} else {
-					tk[id] = uint8(dividend / divisor)
+					compareKey[id] = uint8(dividend / divisor)
 					dividend = dividend % divisor
 					divisor = divisor / 256
 					id++
 				}
 			}
 			defer wg.Done()
-			compareOne(posDic, tk, i)
+			compareOne(posDic, compareKey, i)
 		}(int(i))
 	}
 	wg.Wait()
@@ -93,16 +102,12 @@ func (p *SearchFactory) SearchMax(key []byte, index int) {
 	}
 }
 
-func deepCopy(a []byte, b []byte) {
-	if len(a) != len(b) {
-		return
-	}
-	for i := 0; i < len(a); i++ {
-		b[i] = a[i]
-	}
-}
-
-// compare k with maxKey, and record in posDic
+/**
+ * compare k with maxKey, and record in posDic
+ * posDic : dictionary of search result
+ * k : key used to search maxKey
+ * i : posDic index
+ */
 func compareOne(posDic []int, k []byte, i int) {
 	rt := search(k)
 	if len(rt) == 0 {
