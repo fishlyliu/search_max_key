@@ -2,30 +2,23 @@
 
 # 题目
 有一个函数，行为如下 (Go 代码):
-
+```
 // need to call rand.Read(maxKey) during init
 
 var maxKey = make([]byte, 256)
 
 func init() {
-
 	rand.Read(maxKey)
-	
 }
 
 func Search(key []byte) []byte {
-
 	time.Sleep(time.Millisecond*10)
-	
 	if bytes.Compare(key, maxKey) > 0 {
-	
 		return nil
-		
 	}
-	
 	return key
-	
 }
+```
 
 其中 maxKey 是未知的，需要通过多次调用 Search 函数得到最终的 maxKey 的值。每次调用 Search 函数都会有 10ms 的延迟。要求在多核多线程的条件下，充分利用所有计算资源，在最短的时间内计算得到 maxKey 的值。
 
